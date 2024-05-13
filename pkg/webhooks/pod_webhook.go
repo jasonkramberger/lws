@@ -139,6 +139,13 @@ func (p *PodWebhook) Default(ctx context.Context, obj runtime.Object) error {
 			return err
 		}
 	}
+
+	// inject Leader Address environment variable
+	log.V(2).Info("LWS injection to pod spec %+v and meta %+v", pod.Spec, pod.ObjectMeta)
+	if err := podutils.AddLWSVariables(pod); err != nil {
+		return err
+	}
+
 	return nil
 }
 
