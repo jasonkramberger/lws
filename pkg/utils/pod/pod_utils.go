@@ -125,7 +125,7 @@ func AddLWSVariables(pod *corev1.Pod) error {
 		addEnvVarIfNotExists(&pod.Spec.Containers[i], leaderAddressEnvVar)
 	}
 	for i := range pod.Spec.InitContainers {
-		addEnvVarIfNotExists(&pod.Spec.Containers[i], leaderAddressEnvVar)
+		addEnvVarIfNotExists(&pod.Spec.InitContainers[i], leaderAddressEnvVar)
 	}
 
 	return nil

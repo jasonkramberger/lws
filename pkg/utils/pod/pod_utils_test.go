@@ -111,7 +111,16 @@ func MakePod(setName, groupIndex, workerIndex, namespace string) *corev1.Pod {
 					Image: "busybox",
 				},
 			},
+<<<<<<< HEAD
 			Subdomain: namespace,
+=======
+			InitContainers: []corev1.Container{
+				{
+					Name:  "test-init",
+					Image: "busybox",
+				},
+			},
+>>>>>>> de99072 (Add leader address environment variable injection)
 		},
 		ObjectMeta: v1.ObjectMeta{
 			Name:      fmt.Sprintf("%s-%s-%s", setName, groupIndex, workerIndex),
@@ -168,18 +177,20 @@ func TestAddLWSVariables(t *testing.T) {
 			if err != nil {
 				t.Fatalf("Error parsing parent: %s", err.Error())
 			}
-			if len(tc.pod.Spec.Containers) == 0 {
+			containers := append(tc.pod.Spec.Containers, tc.pod.Spec.InitContainers...)
+			if len(containers) == 0 {
 				t.Fatalf("No contianers in podSpec %+v", tc.pod.Spec)
 			}
-			container := tc.pod.Spec.Containers[0]
-			if len(container.Env) == 0 {
-				t.Fatalf("Failed to add LWS Variables")
-			}
 
-			envVar := container.Env[0]
-			t.Logf("envVar.Value: %+v, expected: %+v", envVar.Value, tc.expectedLwsLeaderAddress)
-			if diff := cmp.Diff(envVar.Value, tc.expectedLwsLeaderAddress); diff != "" {
-				t.Errorf("Unexpected lws leader address %s", diff)
+			for _, container := range containers {
+				if len(container.Env) == 0 {
+					t.Errorf("Failed to add LWS Variables to container %+v", container)
+				}
+
+				envVar := container.Env[0]
+				if diff := cmp.Diff(envVar.Value, tc.expectedLwsLeaderAddress); diff != "" {
+					t.Errorf("Unexpected lws leader address %s", diff)
+				}
 			}
 		})
 	}
